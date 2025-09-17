@@ -118,5 +118,85 @@ def edit_record():
     
     return redirect(url_for("index"))
 
+@app.route("/add", methods=["POST"])
+def add_record():
+    """Handle form submission to create new Airtable record"""
+    try:
+        # Get form data
+        patient_name = request.form.get("Patient Name")
+        pharmacy = request.form.get("Pharmacy")
+        status = request.form.get("Status")
+        dob = request.form.get("DOB")
+        
+        # Validate required fields
+        if not all([patient_name, pharmacy, status, dob]):
+            flash("All fields are required for creating a new record", "error")
+            return redirect(url_for("index"))
+        
+        # Connect to Airtable
+        api = Api(API_KEY)
+        table = api.table(BASE_ID, TABLE_NAME)
+        
+        # Prepare new record data
+        new_record_fields = {
+            "Patient Name": patient_name,
+            "Pharmacy": pharmacy,
+            "Status": status,
+            "DOB": dob
+        }
+        
+        # Create the record
+        created_record = table.create(new_record_fields)
+        record_id = created_record["id"]
+        logger.info(f"Successfully created record {record_id}")
+        flash(f"New record created successfully! ID: {record_id}", "success")
+        
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Error creating record: {error_msg}")
+        
+        if "403" in error_msg:
+            flash("Permission denied. Check your API token permissions.", "error")
+        elif "422" in error_msg:
+            flash("Invalid data format. Please check your input.", "error")
+        else:
+            flash(f"Creation failed: {error_msg}", "error")
+    
+    return redirect(url_for("index"))
+
+@app.route("/delete", methods=["POST"])
+def delete_record():
+    """Handle form submission to delete Airtable record"""
+    try:
+        # Get form data
+        record_id = request.form.get("id")
+        
+        # Validate required fields
+        if not record_id:
+            flash("Record ID is required for deletion", "error")
+            return redirect(url_for("index"))
+        
+        # Connect to Airtable
+        api = Api(API_KEY)
+        table = api.table(BASE_ID, TABLE_NAME)
+        
+        # Delete the record
+        deleted_record = table.delete(record_id)
+        logger.info(f"Successfully deleted record {record_id}")
+        flash(f"Record {record_id} deleted successfully!", "success")
+        
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Error deleting record: {error_msg}")
+        
+        if "404" in error_msg:
+            flash("Record not found. Please check the ID.", "error")
+        elif "403" in error_msg:
+            flash("Permission denied. Check your API token permissions.", "error")
+        else:
+            flash(f"Deletion failed: {error_msg}", "error")
+    
+    return redirect(url_for("index"))
+
 if __name__ == '__main__':
     app.run(debug=True)
