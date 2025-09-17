@@ -1,3 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Airtable Data</title>
+    <style>
+        .flash-messages {
+            margin: 20px 0;
+        }
+        .flash-success {
+            color: green;
+            background-color: #d4edda;
+            padding: 10px;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+        }
+        .flash-error {
+            color: red;
+            background-color: #f8d7da;
+            padding: 10px;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+        }
+        table {
+            margin: 20px 0;
+        }
+        form {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        form input, form select {
+            margin: 5px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Patient Records</h1>
+    
+    <!-- Flash Messages -->
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
 <table border="1">
   <thead>
     <tr>
@@ -11,12 +62,31 @@
   <tbody>
   {% for row in data %}
     <tr>
-      <td>{{ row.Id}}</td>
-      <td>{{ row.Name}}</td>
-      <td>{{ row.Pharmacy}}</td>
-      <td>{{ row.Status}}</td>
-      <td>{{ row.DOB}}</td>
+      <td>{{ row.id }}</td>
+      <td>{{ row['Patient Name'] }}</td>
+      <td>{{ row['Pharmacy'] }}</td>
+      <td>{{ row['Status'] }}</td>
+      <td>{{ row['DOB'] }}</td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
+
+<h2>Update Record</h2>
+<form method="POST" action="/edit">
+  <input type="text" name="id" placeholder="Enter ID">
+  <input type="text" name="Patient Name" placeholder="Patient Name">
+  <input type="text" name="Pharmacy" placeholder="Pharmacy">
+  <label for="statusDropdown">Status :</label>
+<select id="statusDropdown" name="Status">
+  <option value="Plan Exclusion">Plan Exclusion</option>
+  <option value="Approved">Approved</option>
+  <option value="Denied">Denied</option>
+  <option value="PA Criteria Not Met">PA Criteria Not Met</option>
+</select>
+  <input type="date" name="DOB" placeholder="New Age">
+  <button type="submit">Update</button>
+</form>
+
+</body>
+</html>
